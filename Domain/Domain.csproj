@@ -5,12 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="SWI.Prolog" Version="1.1.5990" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\Common.Domain\Common.Domain.csproj" />
-    <ProjectReference Include="..\Domain\Domain.csproj" />
   </ItemGroup>
 
 </Project>
