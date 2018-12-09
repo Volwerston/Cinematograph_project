@@ -3,45 +3,57 @@ using Domain.Prolog;
 using Domain.Prolog.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using SbsSW.SwiPlCs;
 
 namespace Prolog
 {
     public interface IPrologSettings
     {
-        string PrologDirectory { get; }
-        string PrologFileName { get; }
+        string ExecutablePath { get; }
+        string ProgramPath { get; }
+        string KnowledgeBasePath { get; }
     }
 
-    public class PrologService : IPrologService, IDisposable
+    public class PrologService : IPrologService
     {
         private readonly IPrologSettings _settings;
 
         public PrologService(IPrologSettings settings)
         {
             _settings = settings;
-
-            InitializeProlog(_settings.PrologDirectory);
         }
 
         public Result<IReadOnlyList<PrologResponse>> Execute(PrologQuery query)
         {
-            using (var q = new PlQuery(query.Query))
+            var process = new Process
             {
-                return q.SolutionVariables
-                    .Select(
-                        variable => new PrologResponse(variable["C"].ToString()))
-                    .ToList();
-            }
+                StartInfo =
+                {
+                    FileName = _settings.ExecutablePath,
+                    Arguments = GetPrologQuery(query.Query),
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true
+                }
+            };
+
+            process.Start();
+
+            var output = process.StandardOutput.ReadToEnd();
+
+            return output.Trim()
+                .Split(new char[0], StringSplitOptions.RemoveEmptyEntries)
+                .Select(str => new PrologResponse(str))
+                .ToArray();
         }
 
         public async Task<Result> Save(PrologRule rule)
         {
-            using (var fs = new FileStream($"{_settings.PrologDirectory}/{_settings.PrologFileName}",
-                FileMode.OpenOrCreate, FileAccess.Write))
+            using (var fs = new FileStream(_settings.KnowledgeBasePath,
+                FileMode.Append, FileAccess.Write))
             {
                 using (var sw = new StreamWriter(fs))
                 {
@@ -52,17 +64,6 @@ namespace Prolog
             return Result.Ok();
         }
 
-        private static void InitializeProlog(string homeDir)
-        {
-            Environment.SetEnvironmentVariable("SWI_HOME_DIR", homeDir);
-
-            var param = new[] { "-q" };  // suppressing informational and banner messages
-            PlEngine.Initialize(param);
-        }
-
-        public void Dispose()
-        {
-            PlEngine.PlCleanup();
-        }
+        private string GetPrologQuery(string query) => $@"-s ""{_settings.ProgramPath}"" -g ""{query}"" -t halt.";
     }
 }
