@@ -45,7 +45,8 @@ namespace Prolog
             var output = process.StandardOutput.ReadToEnd();
 
             return output.Trim()
-                .Split(new char[0], StringSplitOptions.RemoveEmptyEntries)
+                .Split(new[] { Environment.NewLine },
+                    StringSplitOptions.RemoveEmptyEntries)
                 .Select(str => new PrologResponse(str))
                 .ToArray();
         }
@@ -64,6 +65,10 @@ namespace Prolog
             return Result.Ok();
         }
 
-        private string GetPrologQuery(string query) => $@"-s ""{_settings.ProgramPath}"" -g ""{query}"" -t halt.";
+        private string GetPrologQuery(string query) 
+            => $@"-s ""{_settings.ProgramPath}"" -g ""{ProcessQuery(query)}"" -t halt.";
+
+        private static string ProcessQuery(string query) 
+            => string.Join(@"\""", query.Split('"'));
     }
 }

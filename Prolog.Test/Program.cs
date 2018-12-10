@@ -19,10 +19,56 @@ namespace Prolog.Test
         {
             var service = new PrologService(new PrologSettings());
 
-            service.Save(new PrologRule("loves(yura, it).")).GetAwaiter().GetResult();
-            service.Save(new PrologRule("loves(yura, cinematograph).")).GetAwaiter().GetResult();
-            
-            var res = service.Execute(new PrologQuery("list_preferences(yura, X)."));
+            /* Preferred genres */
+            service.Save(PrologRuleFactory.Likes("Yurii Stetskyi", "Horror film"))
+                .GetAwaiter()
+                .GetResult();
+
+            service.Save(PrologRuleFactory.Likes("Yurii Stetskyi", "Documentary"))
+                .GetAwaiter()
+                .GetResult();
+
+            var preferences = service.Execute(PrologQueryFactory.Likes("Yurii Stetskyi"));
+
+            if (preferences.IsSuccess)
+            {
+                Console.WriteLine("Preferences:");
+                foreach (var preference in preferences.Value)
+                {
+                    Console.WriteLine(preference.Response);
+                }
+            }
+            else
+            {
+                Console.WriteLine($"ERROR: {preferences.Error.Message}");
+            }
+
+            /* Recommended films */
+            service.Save(PrologRuleFactory.Recommended("Yurii Stetskyi", "Mickey Mouse Club House"))
+                .GetAwaiter()
+                .GetResult();
+
+            service.Save(PrologRuleFactory.Recommended("Yurii Stetskyi", "Terminator"))
+                .GetAwaiter()
+                .GetResult();
+
+            var recommendations = service
+                .Execute(PrologQueryFactory.Recommended("Yurii Stetskyi"));
+
+            if (recommendations.IsSuccess)
+            {
+                Console.WriteLine("Recommendations:");
+
+                foreach (var recommendation in recommendations.Value)
+                {
+                    Console.WriteLine(recommendation.Response);
+                }
+            }
+            else
+            {
+                Console.WriteLine($"ERROR: {recommendations.Error.Message}");
+            }
+
 
             Console.ReadKey();
         }
