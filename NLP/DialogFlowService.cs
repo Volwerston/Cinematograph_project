@@ -1,7 +1,6 @@
-﻿using Newtonsoft.Json;
+﻿using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using System.Net;
 using System.Net.Http;
 using System.Web;
 
@@ -30,7 +29,6 @@ namespace NLP
             using (var httpClient = new HttpClient())
             {
                 httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {CLIENT_TOKEN}");
-                httpClient.DefaultRequestHeaders.Add("Content-Type", "application/json");
 
                 var response = httpClient.GetAsync(endpointUri).Result;
 
@@ -45,15 +43,34 @@ namespace NLP
                 return new NLPResponse();
             }
 
-            return ParseResponse(responseStr);            
+            return ParseResponse(responseStr);
         }
 
         private NLPResponse ParseResponse(String responseStr)
         {
-            dynamic response = JsonConvert.DeserializeObject(responseStr);
+            JObject response = JObject.Parse(responseStr);
+
+            var parameters = new Dictionary<string, List<string>>();
+
+            var result = response["result"];
+            foreach (JProperty param in result["parameters"])
+            {
+                if (param.Value.GetType() == typeof(JArray))
+                {
+                    parameters.Add(param.Name, ((JArray)param.Value).ToObject<List<String>>());
+                }
+                else
+                {
+                    parameters.Add(param.Name, new List<string> { param.Value.ToString()});
+                }
+            }
 
             //TODO implement
-            return new NLPResponse();
+            return new NLPResponse
+            {
+                IntentName = result["metadata"]["intentName"].ToString(),
+                Parameters = parameters
+            };
         }
     }
 }
