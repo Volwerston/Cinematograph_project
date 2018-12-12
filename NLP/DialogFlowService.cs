@@ -68,6 +68,7 @@ namespace NLP
             //TODO implement
             return new NLPResponse
             {
+                Message = result["speech"].ToString(),
                 IntentName = result["metadata"]["intentName"].ToString(),
                 Parameters = parameters
             };

@@ -6,6 +6,7 @@ namespace NLP
     public class NLPResponse
     {
         public String IntentName { get; set; }
+        public String Message { get; set; }
         public Dictionary<String, List<String>> Parameters { get; set; }
     }
 
