@@ -47,6 +47,11 @@ namespace Repository
             return _moviesCollection.Find(filter).ToList();
         }
 
+        public List<Movie> FindAll()
+        {
+            return _moviesCollection.Find(_filterBuilder.Empty).ToList();
+        }
+
         public PaginatedResponse<Movie> SearchByGenre(List<string> genres, PaginationRequest paginationRequest)
         {
             var filter = new BsonDocument(new BsonElement("genres", new BsonDocument(
@@ -55,7 +60,7 @@ namespace Repository
                     new BsonElement("$in", 
                     new BsonArray(MatchToPattern(genres))))))));
 
-            var query = _moviesCollection.Find(filter).SortBy(m => m.Id);
+            var query = _moviesCollection.Find(filter).SortBy(m => m.MetacriticRate).SortBy(m => m.Id);
 
             var total = query.CountDocuments();
             var result = query.Skip(paginationRequest.StartIndex).Limit(paginationRequest.Size).ToList();
