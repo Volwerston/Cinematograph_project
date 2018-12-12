@@ -7,7 +7,7 @@ namespace Cinematograph.Client.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly MessageProcessor _processor = new MessageProcessor();
+        private static readonly MessageProcessor Processor = new MessageProcessor();
 
         public IActionResult Index()
         {
@@ -17,7 +17,7 @@ namespace Cinematograph.Client.Controllers
         [HttpPost]
         public IActionResult SetUsername(string userName)
         {
-            _processor.Username = userName ?? string.Empty;
+            Processor.Username = userName ?? string.Empty;
             return Ok();
         }
 
@@ -25,7 +25,7 @@ namespace Cinematograph.Client.Controllers
         public IActionResult GetResponse(string request)
             => Ok(new
             {
-                Message = _processor.ProcessMessage(request)
+                Message = Processor.ProcessMessage(request)
             });
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
