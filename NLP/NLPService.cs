@@ -16,10 +16,13 @@ namespace NLP
         public const string DefaultWelcomeIntent = "Default Welcome Intent";
         public const string FavouriteGenresIntent = "FavouriteGenres";
         public const string GetMovieDescriptionIntent = "GetMovieDescription";
+        public const string GetMovieDescriptionContIntent = "GetMovieDescriptionCont";
         public const string GetMovieRateIntent = "GetMovieRate";
         public const string GetMovieRateContIntent = "GetMovieRateCont";
         public const string GetMovieReleaseDateIntent = "GetMovieReleaseDate";
+        public const string GetMovieReleaseDateContIntent = "GetMovieReleaseDateCont";
         public const string GetMoviewReviewIntent = "GetMoviewReview";
+        public const string GetMoviewReviewContIntent = "GetMoviewReviewCont";
         public const string GetMoviesByGenreIntent = "GetMoviesByGenre";
         public const string GetTopRatedMoviesIntent = "GetTopRatedMovies";
         public const string ThanksIntent = "ThanksIntent";
