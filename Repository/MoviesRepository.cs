@@ -55,10 +55,12 @@ namespace Repository
         public PaginatedResponse<Movie> SearchByGenre(List<string> genres, PaginationRequest paginationRequest)
         {
             var filter = new BsonDocument(new BsonElement("genres", new BsonDocument(
-                new BsonElement("$elemMatch", 
+                new BsonElement("$elemMatch",
                 new BsonDocument(
-                    new BsonElement("$in", 
-                    new BsonArray(MatchToPattern(genres))))))));
+                    new BsonElement("$in",
+                    new BsonArray(MatchToPattern(genres))))))),
+                new BsonElement("metacritic", new BsonDocument(
+                    new BsonElement("$ne", "null"))));
 
             var query = _moviesCollection.Find(filter).SortBy(m => m.MetacriticRate).SortBy(m => m.Id);
 

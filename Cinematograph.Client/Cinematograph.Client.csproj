@@ -15,4 +15,13 @@
     <ProjectReference Include="..\Application.Services\Application.Services.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="db.pl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="exec.pl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

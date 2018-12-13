@@ -11,10 +11,7 @@ namespace Repository.TestClient
         static void Main(string[] args)
         {
             var moviesRepo = new MoviesRepository();
-            var titleSearch = moviesRepo.FindAll();
-            var lines = titleSearch.Select(m => $"\"{m.Title.Replace("\"", "\\\"").Replace("(", "[").Replace(")", "]")}\"," +
-            $"\"{m.Title.Replace("\"", "\\\"").Replace("(", "[").Replace(")", "]")}\"\n").ToArray();
-            System.IO.File.WriteAllLines(@"D:\data.csv", lines);
+            var titleSearch = moviesRepo.SearchByGenre(new List<string> { "sci-fi" }, new PaginationRequest());
         }
     }
 }

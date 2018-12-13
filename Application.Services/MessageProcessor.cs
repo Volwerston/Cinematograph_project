@@ -1,12 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using Domain.Model;
+﻿using Domain.Model;
 using Domain.Prolog;
 using NLP;
 using Prolog;
 using Repository;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 //using Prolog.Test;
 
 namespace Application
@@ -22,161 +22,152 @@ namespace Application
 
         public string ProcessMessage(string message)
         {
-            try
+            string response = string.Empty;
+
+            NLPResponse nlpresponse = NLPService.Ask(message);
+            List<Movie> searchResult;
+
+            switch (nlpresponse.IntentName)
             {
-                string response = string.Empty;
-
-                NLPResponse nlpresponse = NLPService.Ask(message);
-                List<Movie> searchResult;
-
-                switch (nlpresponse.IntentName)
-                {
-                    case NLPIntentNames.DefaultFallbackIntent:
+                case NLPIntentNames.DefaultFallbackIntent:
+                    response = nlpresponse.Message;
+                    break;
+                case NLPIntentNames.DefaultWelcomeIntent:
+                    response = nlpresponse.Message;
+                    break;
+                case NLPIntentNames.FavouriteGenresIntent:
+                    try
+                    {
+                        saveUserPreferences(nlpresponse.Parameters["Genre"]);
                         response = nlpresponse.Message;
-                        break;
-                    case NLPIntentNames.DefaultWelcomeIntent:
-                        response = nlpresponse.Message;
-                        break;
-                    case NLPIntentNames.FavouriteGenresIntent:
-                        try
-                        {
-                            saveUserPreferences(nlpresponse.Parameters["Genre"]);
-                            response = nlpresponse.Message;
-                        }
-                        catch (Exception exc)
-                        {
-                            response = exc.Message;
-                        }
+                    }
+                    catch (Exception exc)
+                    {
+                        response = exc.Message;
+                    }
 
-                        break;
-                    case NLPIntentNames.GetMovieDescriptionIntent:
-                        searchResult = movieRepository.SearchByTitle(nlpresponse.Parameters["MovieName"][0]);
-                        if (searchResult.Count == 0)
-                            response = $"Sorry, I know nothing about the film {nlpresponse.Parameters["MovieName"][0]}";
-                        else
-                            foreach (var movie in searchResult)
-                            {
-                                response += $"{movie.Title}\tDescription:\n{movie.Plot}\n\n";
-                            }
-
-                        break;
-                    case NLPIntentNames.GetMovieDescriptionContIntent:
-                        break;
-                    case NLPIntentNames.GetMovieRateIntent:
-                        searchResult = movieRepository.SearchByTitle(nlpresponse.Parameters["MovieName"][0]);
-                        if (searchResult.Count == 0)
-                            response = $"Sorry, I know nothing about the film {nlpresponse.Parameters["MovieName"][0]}";
-                        else
-                            foreach (var movie in searchResult)
-                            {
-                                response +=
-                                    $"{movie.Title}\tMetacritic: {movie.MetacriticRate}\tTomato: {movie.TomatoRate.Rating}\t Imdb: {movie.ImdbRate.Rating}\n";
-                            }
-
-                        break;
-                    case NLPIntentNames.GetMovieRateContIntent:
-                        break;
-                    case NLPIntentNames.GetMovieReleaseDateIntent:
-                        searchResult = movieRepository.SearchByTitle(nlpresponse.Parameters["MovieName"][0]);
-                        if (searchResult.Count == 0)
-                            response = $"Sorry, I know nothing about the film {nlpresponse.Parameters["MovieName"][0]}";
-                        else
-                            foreach (var movie in searchResult)
-                            {
-                                response += $"{movie.Title}\tRelease Date: {movie.Year}\n";
-                            }
-
-                        break;
-                    case NLPIntentNames.GetMovieReleaseDateContIntent:
-                        break;
-                    //Obsolete
-                    /*case NLPIntentNames.GetMoviewReviewIntent:
-                        break;
-                    case NLPIntentNames.GetMoviewReviewContIntent:
-                        break;
-                        */
-                    case NLPIntentNames.GetMoviesByGenreIntent:
-                        var genreToFind = nlpresponse.Parameters["Genre"][0];
-                        searchResult = movieRepository.SearchByGenre(new List<string>() {genreToFind},
-                            new PaginationRequest() {Page = 1, Size = 1000}).Data;
-                        //remove already recommended 
-                        var alreadyRecommended = prologService.Execute(PrologQueryFactory.Recommended(Username)).Value;
-                        searchResult = searchResult?.Where(x =>
-                            !alreadyRecommended.Any(y => y.Response.ToLower() == x.Title.ToLower()))?.ToList();
-                        if (searchResult.Count > 0)
+                    break;
+                case NLPIntentNames.GetMovieDescriptionContIntent:
+                case NLPIntentNames.GetMovieDescriptionIntent:
+                    searchResult = movieRepository.SearchByTitle(nlpresponse.Parameters["MovieName"][0]);
+                    if (searchResult.Count == 0)
+                        response = $"Sorry, I know nothing about the film {nlpresponse.Parameters["MovieName"][0]}";
+                    else
+                        foreach (var movie in searchResult)
                         {
-                            for (int i = 0; i < Math.Min(searchResult.Count, 5); i++)
-                            {
-                                response += $"{i + 1}. {searchResult[i].Title}";
-                            }
-                        }
-                        else
-                        {
-                            response = "Sorry I can not find some fresh films for you :(";
+                            response += $"{movie.Title}\tDescription:\n{movie.Plot}\n\n";
                         }
 
-                        break;
-                    case NLPIntentNames.GetTopRatedMoviesIntent:
-                        List<Movie> movies = movieRepository.FindAll().OrderByDescending(x => x.ImdbRate.Rating)
-                            .ToList();
-                        //remove recommended
-                        var alreadyRecommendedTOPRated =
-                            prologService.Execute(PrologQueryFactory.Recommended(Username)).Value;
-                        movies = movies?.Where(x =>
-                            !alreadyRecommendedTOPRated.Any(y => y.Response.ToLower() == x.Title.ToLower()))?.ToList();
-                        if (movies.Count == 0)
-                        {
-                            response = "Sorry, I have no fresh films for you :(";
-                            break;
-                        }
-
-                        movies = movies.Take(Math.Min(movies.Count, 5)).ToList();
-                        response = "I would recommend:\n";
-                        for (int i = 0; i < movies.Count; i++)
+                    break;
+                case NLPIntentNames.GetMovieRateContIntent:
+                case NLPIntentNames.GetMovieRateIntent:
+                    searchResult = movieRepository.SearchByTitle(nlpresponse.Parameters["MovieName"][0]);
+                    if (searchResult.Count == 0)
+                        response = $"Sorry, I know nothing about the film {nlpresponse.Parameters["MovieName"][0]}";
+                    else
+                        foreach (var movie in searchResult)
                         {
                             response +=
-                                $"{i + 1}. {movies[i].Title} - Imdb: {movies[i].ImdbRate.Rating};\tMetacritic: {movies[i].MetacriticRate};\tTomato: {movies[i].TomatoRate.Rating}\n";
-                            prologService.Save(PrologRuleFactory.Recommended(Username, movies[i].Title));
+                                $"{movie.Title}\tMetacritic: {movie.MetacriticRate}\tTomato: {movie?.TomatoRate?.Rating.ToString() ?? "N/A"}\t " +
+                                $"Imdb: {movie?.ImdbRate?.Rating.ToString() ?? "N/A"}\n";
                         }
 
-                        break;
-                    case NLPIntentNames.ThanksIntent:
-                        response = nlpresponse.Message;
-                        break;
-                    case NLPIntentNames.WantWatchMovieIntent:
-                        List<string> preferences = checkUserPreferences();
-                        if (preferences.Count == 0)
-                            response = "I don't know about your preferences. Please tell me what genres do you prefer.";
-                        else
+                    break;
+                case NLPIntentNames.GetMovieReleaseDateContIntent:
+                case NLPIntentNames.GetMovieReleaseDateIntent:
+                    searchResult = movieRepository.SearchByTitle(nlpresponse.Parameters["MovieName"][0]);
+                    if (searchResult.Count == 0)
+                        response = $"Sorry, I know nothing about the film {nlpresponse.Parameters["MovieName"][0]}";
+                    else
+                        foreach (var movie in searchResult)
                         {
-                            var rec = recommendRandomMovieByPreferences(preferences);
-
-                            response = rec.Length > 0
-                                ? $"I would like to recommend {rec}"
-                                : "I already recommended you all films. Please name me another genres you might likes.";
-
+                            response += $"{movie.Title}\tRelease Date: {movie.Year}\n";
                         }
 
-                        break;
-                    //case NLPIntentNames.WantWatchSpecificMovieIntent:
-                    //    break;
-                    default:
-                        response = "Sorry, I don't understand you :(";
-                        break;
-                }
+                    break;
+                //Obsolete
+                /*case NLPIntentNames.GetMoviewReviewIntent:
+                    break;
+                case NLPIntentNames.GetMoviewReviewContIntent:
+                    break;
+                    */
+                case NLPIntentNames.GetMoviesByGenreIntent:
+                    var genreToFind = nlpresponse.Parameters["Genre"][0];
+                    searchResult = movieRepository.SearchByGenre(new List<string>() { genreToFind },
+                        new PaginationRequest() { Page = 1, Size = 1000 }).Data;
+                    //remove already recommended 
+                    var alreadyRecommended = prologService.Execute(PrologQueryFactory.Recommended(Username)).Value;
+                    searchResult = searchResult?.Where(x =>
+                        !alreadyRecommended.Any(y => y.Response.ToLower() == x.Title.ToLower()))?.ToList();
+                    if (searchResult.Count > 0)
+                    {
+                        for (int i = 0; i < Math.Min(searchResult.Count, 5); i++)
+                        {
+                            response += $"{i + 1}. {searchResult[i].Title}";
+                        }
+                    }
+                    else
+                    {
+                        response = "Sorry I can not find some fresh films for you :(";
+                    }
 
-                return response;
+                    break;
+                case NLPIntentNames.GetTopRatedMoviesIntent:
+                    List<Movie> movies = movieRepository.FindAll().OrderByDescending(x => x.ImdbRate.Rating)
+                        .ToList();
+                    //remove recommended
+                    var alreadyRecommendedTOPRated =
+                        prologService.Execute(PrologQueryFactory.Recommended(Username)).Value;
+                    movies = movies?.Where(x =>
+                        !alreadyRecommendedTOPRated.Any(y => y.Response.ToLower() == x.Title.ToLower()))?.ToList();
+                    if (movies.Count == 0)
+                    {
+                        response = "Sorry, I have no fresh films for you :(";
+                        break;
+                    }
+
+                    movies = movies.Take(Math.Min(movies.Count, 5)).ToList();
+                    response = "I would recommend:\n";
+                    for (int i = 0; i < movies.Count; i++)
+                    {
+                        response +=
+                            $"{i + 1}. {movies[i].Title} - Imdb: {movies[i].ImdbRate.Rating};\tMetacritic: {movies[i].MetacriticRate};\tTomato: {movies[i].TomatoRate.Rating}\n";
+                        prologService.Save(PrologRuleFactory.Recommended(Username, movies[i].Title));
+                    }
+
+                    break;
+                case NLPIntentNames.ThanksIntent:
+                    response = nlpresponse.Message;
+                    break;
+                case NLPIntentNames.WantWatchMovieIntent:
+                    List<string> preferences = checkUserPreferences();
+                    if (preferences.Count == 0)
+                        response = "I don't know about your preferences. Please tell me what genres do you prefer.";
+                    else
+                    {
+                        var rec = recommendRandomMovieByPreferences(preferences);
+
+                        response = rec.Length > 0
+                            ? $"I would like to recommend {rec}"
+                            : "I already recommended you all films. Please name me another genres you might likes.";
+
+                    }
+
+                    break;
+                //case NLPIntentNames.WantWatchSpecificMovieIntent:
+                //    break;
+                default:
+                    response = "Sorry, I don't understand you :(";
+                    break;
             }
-            catch (Exception e)
-            {
-                throw;
-            }
+
+            return response;
         }
 
         protected List<string> checkUserPreferences()
         {
             List<string> toRet = new List<string>();
-            
+
             var preferences = prologService.Execute(PrologQueryFactory.Likes(Username));
             if (preferences.IsSuccess)
                 toRet = preferences.Value.Select(x => x.Response).ToList();
@@ -194,7 +185,7 @@ namespace Application
         }
         protected string recommendRandomMovieByPreferences(List<string> preferences)
         {
-            List<Movie> toRecommend =   
+            List<Movie> toRecommend =
                     movieRepository.SearchByGenre(preferences, new PaginationRequest() { Page = 1, Size = 1000 }).Data;
             //remove already recommended
             var alreadyRecommended = prologService.Execute(PrologQueryFactory.Recommended(Username)).Value;
@@ -208,7 +199,7 @@ namespace Application
 
                 return toRecommend[0].Title;
             }
-                
+
             else
                 return String.Empty;
         }
