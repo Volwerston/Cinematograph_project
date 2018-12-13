@@ -43,7 +43,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="MessageProcessorcs.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -51,29 +50,9 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Common.Domain\Common.Domain.csproj">
-      <Project>{26416d09-60c6-4ba0-9b55-36309df55d16}</Project>
-      <Name>Common.Domain</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Domain.Model\Domain.Model.csproj">
-      <Project>{6d19146f-a011-4667-bd70-4a9a0212d745}</Project>
-      <Name>Domain.Model</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Domain\Domain.csproj">
-      <Project>{05bd5079-efb5-4d73-86fa-8dc4480a5426}</Project>
-      <Name>Domain</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\NLP\NLP.csproj">
-      <Project>{a4013595-3d02-4552-92bc-142c61462412}</Project>
-      <Name>NLP</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Prolog\Prolog.csproj">
-      <Project>{8a8d1c80-8b6e-41c8-9c38-41e6982cb7ec}</Project>
-      <Name>Prolog</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Repository\Repository.csproj">
-      <Project>{6b435cfe-678c-43a2-bb75-d4ae212c516c}</Project>
-      <Name>Repository</Name>
+    <ProjectReference Include="..\Application.Services\Application.Services.csproj">
+      <Project>{1439fe52-d458-4b6f-bf95-3111135764de}</Project>
+      <Name>Application.Services</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

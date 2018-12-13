@@ -19,7 +19,7 @@
     </div>
 </div>
 
-<div class="row well" id="message_container" style="height: 300px; overflow-y: scroll; overflow-x: hidden; white-space:nowrap; overflow:hidden;">
+<div class="row well" id="message_container" style="height: 300px; overflow-y: scroll; white-space:nowrap;">
 
 </div>
 <div class="row">
@@ -80,7 +80,9 @@
                     return;
                 }
 
+                $("textarea#request_message").val("");
                 $("div#message_container").append(getDivForRequest(requestToSend));
+                $('div#message_container').scrollTop($('div#message_container')[0].scrollHeight);
 
                 $.ajax({
                     method: 'GET',
@@ -88,6 +90,7 @@
                     contentType: 'application/json',
                     success: function(res) {
                         $("div#message_container").append(getDivForResponse(res.message));
+                        $('div#message_container').scrollTop($('div#message_container')[0].scrollHeight);
                     },
                     error: function(res) {
                         alert(res);
