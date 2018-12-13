@@ -7,9 +7,11 @@
         <div class="modal-content">
             <div class="modal-body">
                 <div class="row">
-                    <div class="col-sm-8 col-sm-push-2">
+                    <div class="col-3 col-push-2 row-fluid" style="padding:10px;">
+                        @*<div>Enter your name:</div>*@
                         <input type="text" class="form-control" id="user_name" placeholder="Enter your name" />
                     </div>
+                    <div class="row-fluid" id="nameSendStatus" style="color:maroon; padding-left:15px;"></div>
                 </div>
             </div>
             <div class="modal-footer">
@@ -19,11 +21,11 @@
     </div>
 </div>
 
-<div class="row well" id="message_container" style="height: 300px; overflow-y: scroll; white-space:nowrap;">
+<div class="row well" id="message_container" style="height: 300px; overflow-y: scroll; ">
 
 </div>
 <div class="row">
-    <div class="col-sm-6 col-sm-push-3">
+    <div class="col-6 col-push-3">
         <textarea class="form-control" id="request_message" rows="5"></textarea>
         <br/>
         <div class="row">
@@ -37,12 +39,35 @@
 @section Scripts
 {
     <script type="text/javascript">
+        var username;
+        $('#request_message').keypress(function (e) {
+            if (e.which == 13) {
+                $("#send_request").trigger("click");
+            }
+        });
+        $('#user_name').keypress(function (e) {
+            if (e.which == 13) {
+                $("#save_name").trigger("click");
+            }
+        });
         function getDivForRequest(request) {
-            return '<div style="padding: 5px 10px; border-radius: 2px; margin: 5px; background-color: blue;"><p style="color: white">' + request + '</p></div>';
+            var currentdate = new Date(); 
+            return '<div class="container-fluid" style="padding: 5px 10px; border-radius: 2px; margin: 5px;background-color: #5bc0de;">' +
+                '<div class="row" style="color:grey;font-style: italic;font-weight: 600;" >'
+                + '<div class="col-sm-6 col-md-6 col-lg-6">' + username + '</div>' + '<div class="col-sm-6 col-md-6 col-lg-6" style="text-align:right;">' + currentdate.getHours() + ":" + currentdate.getMinutes() + ":"
+                + currentdate.getSeconds() + '</div>' +  '</div> ' +
+                '<div class="row-fluid" style="color: white;word-break:break-all; ">'
+                + request +
+                '</p></div>';
         }
 
         function getDivForResponse(response) {
-            return '<div style="padding: 5px 10px; border-radius: 2px; margin: 5px; background-color: green;"><p style="color: white">' + response + '</p></div>';
+            var currentdate = new Date(); 
+            return '<div class="container-fluid" style="padding: 5px 10px; border-radius: 2px; margin: 5px;background-color: #52c552;">'
+                + '<div class="row" style="color:grey;font-style: italic;font-weight: 600;" >'
+                + '<div class="col-sm-6 col-md-6 col-lg-6">' + 'Dobrobot' + '</div>' + '<div class="col-sm-6 col-md-6 col-lg-6" style="text-align:right;">' + currentdate.getHours() + ":" + currentdate.getMinutes() + ":"
+                + currentdate.getSeconds() + '</div>' + '</div> ' +
+             '<div class="row-fluid" style="color: white;word-break:break-all">' + response + '</div></div>';
         }
 
         $(document).ready(function() {
@@ -53,9 +78,10 @@
 
             $("button#save_name").click(function() {
                 var val = $('input#user_name').val();
-
+                $("#nameSendStatus").text('');
                 if (val.trim() === "") {
-                    alert("Please enter your name");
+                    //alert("Please enter your name");
+                    $("#nameSendStatus").text("Please enter your name");
                     return;
                 }
 
@@ -65,6 +91,7 @@
                     contentType: 'application/json',
                     success: function() {
                         $("div#name_modal").modal('hide');
+                        username = val;
                     },
                     error: function(res) {
                         alert(res);
@@ -79,7 +106,6 @@
                     alert("Please enter request message");
                     return;
                 }
-
                 $("textarea#request_message").val("");
                 $("div#message_container").append(getDivForRequest(requestToSend));
                 $('div#message_container').scrollTop($('div#message_container')[0].scrollHeight);
@@ -91,6 +117,7 @@
                     success: function(res) {
                         $("div#message_container").append(getDivForResponse(res.message));
                         $('div#message_container').scrollTop($('div#message_container')[0].scrollHeight);
+                        $("textarea#request_message").val("");
                     },
                     error: function(res) {
                         alert(res);
